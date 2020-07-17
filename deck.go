@@ -61,17 +61,20 @@ func (d Deck) saveToFile(filename string) error {
 	return ioutil.WriteFile(filename, jsonData0, 0666)
 }
 
-// Read Deck from file, if there is no deck, call a new deck
+// Read saved hand from file, if there is no saved hand, call a new deck, shuffle deal, and use that
 func newDeckFromFile(filename string) Deck {
 	bs, err1 := ioutil.ReadFile(filename)
 	if err1 != nil {
 		fmt.Println("Error:", err1, "\nCreating new deck")
-		return new()
+		createDeck := new()
+		createDeck.shuffle()
+		createHand, _ := deal(createDeck, 5)
+		return createHand
 	}
-	var s Deck
-	err2 := json.Unmarshal(bs, &s)
+	var savedDeck Deck
+	err2 := json.Unmarshal(bs, &savedDeck)
 	if err2 != nil {
 		fmt.Println(err2)
 	}
-	return s
+	return savedDeck
 }

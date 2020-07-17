@@ -1,65 +1,81 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
-	"strings"
 	"time"
 )
 
-// Create a new type of deck which is a slice of strings
-type deck []string
+type Card struct {
+	Value string `json:"value"`
+	Suit  string `json:"suit"`
+}
+type Deck []Card
 
-func newDeck() deck {
-	cards := deck{}
-	cardSuits := []string{"Spades", "Diamonds", "Hearts", "Clubs"}
-	cardValues := []string{"Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"}
-	for _, suit := range cardSuits {
-		for _, value := range cardValues {
-			cards = append(cards, value+" of "+suit)
+// Create a new deck
+func new() (deck Deck) {
+	values := []string{"Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"}
+	suits := []string{"Spades", "Diamonds", "Hearts", "Clubs"}
+	for i := range values {
+		for j := range suits {
+			card := Card{
+				Value: values[i],
+				Suit:  suits[j],
+			}
+			deck = append(deck, card)
 		}
 	}
-	return cards
+	return
 }
 
-func (d deck) print() {
-	for i, card := range d {
-		fmt.Println(i, card)
+func (d Deck) print() {
+	for _, card := range d {
+		fmt.Printf("%v of %v\n", card.Value, card.Suit)
 	}
 }
 
-// "deal" the deck
-func deal(d deck, handSize int) (deck, deck) {
+// Deal a specified amount of cards
+func deal(d Deck, handSize int) (Deck, Deck) {
 	return d[:handSize], d[handSize:]
 }
 
-// Convert from deck type to string type
-func (d deck) toString() string {
-	return strings.Join([]string(d), ",")
-}
-
-// Write Deck to file
-func (d deck) saveToFile(filename string) error {
-	return ioutil.WriteFile(filename, []byte(d.toString()), 0666)
-}
-
-// Read Deck from file, if there is no deck, call a new deck
-func newDeckFromFile(filename string) deck {
-	bs, err := ioutil.ReadFile(filename)
-	if err != nil {
-		fmt.Println("Error:", err, "\nCreating new deck")
-		return newDeck()
-	}
-	s := strings.Split(string(bs), ",")
-	return deck(s)
-}
-
 // Shuffle the deck
-func (d deck) shuffle() deck {
+func (d Deck) shuffle() Deck {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(d), func(i, j int) {
 		d[i], d[j] = d[j], d[i]
 	})
 	return d
+}
+
+func (d Deck) toString() string {
+	return fmt.Sprintf("%v", d)
+}
+
+// Save the deck to a file
+func (d Deck) saveToFile(filename string) error {
+	var jsonData0 []byte
+	jsonData0, err0 := json.Marshal(d)
+	if err0 != nil {
+		log.Println(err0)
+	}
+	return ioutil.WriteFile(filename, jsonData0, 0666)
+}
+
+// Read Deck from file, if there is no deck, call a new deck
+func newDeckFromFile(filename string) Deck {
+	bs, err1 := ioutil.ReadFile(filename)
+	if err1 != nil {
+		fmt.Println("Error:", err1, "\nCreating new deck")
+		return new()
+	}
+	var s Deck
+	err2 := json.Unmarshal(bs, &s)
+	if err2 != nil {
+		fmt.Println(err2)
+	}
+	return s
 }

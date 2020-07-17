@@ -51,10 +51,6 @@ func (d Deck) shuffle() Deck {
 	return d
 }
 
-func (d Deck) toString() string {
-	return fmt.Sprintf("%v", d)
-}
-
 // Save the deck to a file
 func (d Deck) saveToFile(filename string) error {
 	var jsonData0 []byte
